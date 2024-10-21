@@ -41,8 +41,10 @@ This project is part of the **Compiler Construction Lab** with Instructor **Mr. 
    git clone https://github.com/your-username/compiler-parser.git
    
 2. Compile the code:
-  ``g++ -o parser parser.cpp
+  ```bash
+  g++ -o parser parser.cpp
 
 3. Run the parser with a source file:
-  ``./parser your-source-file.txt
+  ```bash
+  ./parser your-source-file.txt
 
