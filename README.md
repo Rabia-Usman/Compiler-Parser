@@ -29,9 +29,6 @@ This project is part of the **Compiler Construction Lab** with Instructor **Mr. 
 ### 8. Symbol Table
 - Implement a symbol table using an efficient data structure (like a hash map or binary search tree) to track variable declarations, data types, and scope information.
 
-### Data Structure Choice for Symbol Table
-- The **hash map** was selected for the symbol table due to its **average O(1)** lookup time, which ensures efficient symbol management during compilation.
-
 ## Installation
 
 ### Prerequisites
@@ -44,8 +41,8 @@ This project is part of the **Compiler Construction Lab** with Instructor **Mr. 
    git clone https://github.com/your-username/compiler-parser.git
    
 2. Compile the code:
-  ```g++ -o parser parser.cpp
+  ``g++ -o parser parser.cpp
 
 3. Run the parser with a source file:
-  ```./parser your-source-file.txt
+  ``./parser your-source-file.txt
 
