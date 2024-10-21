@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>  // For file reading
 #include <vector>
 #include <string>
 #include <cctype>
@@ -13,23 +14,15 @@ enum TokenType {
     T_SEMICOLON, T_GT, T_EOF, 
 };
 
-
 struct Token {
     TokenType type;
     string value;
 };
 
 class Lexer {
-
     private:
         string src;
         size_t pos;
-        /*
-        It hold positive values. 
-        In C++, size_t is an unsigned integer data type used to represent the 
-        size of objects in bytes or indices, especially when working with memory-related 
-        functions, arrays, and containers like vector or string. You can also use the int data type but size_t is recommended one
-        */
 
     public:
         Lexer(const string &src) {
@@ -80,7 +73,6 @@ class Lexer {
             return tokens;
         }
 
-
         string consumeNumber() {
             size_t start = pos;
             while (pos < src.size() && isdigit(src[pos])) pos++;
@@ -96,136 +88,139 @@ class Lexer {
 
 
 class Parser {
- 
-
-public:
-    Parser(const vector<Token> &tokens) {
-        this->tokens = tokens;  
-        this->pos = 0;          
-    }
-
-    void parseProgram() {
-        while (tokens[pos].type != T_EOF) {
-            parseStatement();
+    public:
+        Parser(const vector<Token> &tokens) {
+            this->tokens = tokens;  
+            this->pos = 0;          
         }
-        cout << "Parsing completed successfully! No Syntax Error" << endl;
-    }
 
-private:
-    vector<Token> tokens;
-    size_t pos;
-
-    void parseStatement() {
-        if (tokens[pos].type == T_INT) {
-            parseDeclaration();
-        } else if (tokens[pos].type == T_ID) {
-            parseAssignment();
-        } else if (tokens[pos].type == T_IF) {
-            parseIfStatement();
-        } else if (tokens[pos].type == T_RETURN) {
-            parseReturnStatement();
-        } else if (tokens[pos].type == T_LBRACE) {  
-            parseBlock();
-        } else {
-            cout << "Syntax error: unexpected token " << tokens[pos].value << endl;
-            exit(1);
+        void parseProgram() {
+            while (tokens[pos].type != T_EOF) {
+                parseStatement();
+            }
+            cout << "Parsing completed successfully! No Syntax Error" << endl;
         }
-    }
 
-    void parseBlock() {
-        expect(T_LBRACE);  
-        while (tokens[pos].type != T_RBRACE && tokens[pos].type != T_EOF) {
-            parseStatement();
+    private:
+        vector<Token> tokens;
+        size_t pos;
+
+        void parseStatement() {
+            if (tokens[pos].type == T_INT) {
+                parseDeclaration();
+            } else if (tokens[pos].type == T_ID) {
+                parseAssignment();
+            } else if (tokens[pos].type == T_IF) {
+                parseIfStatement();
+            } else if (tokens[pos].type == T_RETURN) {
+                parseReturnStatement();
+            } else if (tokens[pos].type == T_LBRACE) {  
+                parseBlock();
+            } else {
+                cout << "Syntax error: unexpected token " << tokens[pos].value << endl;
+                exit(1);
+            }
         }
-        expect(T_RBRACE);  
-    }
-    void parseDeclaration() {
-        expect(T_INT);
-        expect(T_ID);
-        expect(T_SEMICOLON);
-    }
 
-    void parseAssignment() {
-        expect(T_ID);
-        expect(T_ASSIGN);
-        parseExpression();
-        expect(T_SEMICOLON);
-    }
-
-    void parseIfStatement() {
-        expect(T_IF);
-        expect(T_LPAREN);
-        parseExpression();
-        expect(T_RPAREN);
-        parseStatement();  
-        if (tokens[pos].type == T_ELSE) {
-            expect(T_ELSE);
-            parseStatement();  
+        void parseBlock() {
+            expect(T_LBRACE);  
+            while (tokens[pos].type != T_RBRACE && tokens[pos].type != T_EOF) {
+                parseStatement();
+            }
+            expect(T_RBRACE);  
         }
-    }
 
-    void parseReturnStatement() {
-        expect(T_RETURN);
-        parseExpression();
-        expect(T_SEMICOLON);
-    }
-
-    void parseExpression() {
-        parseTerm();
-        while (tokens[pos].type == T_PLUS || tokens[pos].type == T_MINUS) {
-            pos++;
-            parseTerm();
+        void parseDeclaration() {
+            expect(T_INT);
+            expect(T_ID);
+            expect(T_SEMICOLON);
         }
-        if (tokens[pos].type == T_GT) {
-            pos++;
-            parseExpression();  // After relational operator, parse the next expression
-        }
-    }
 
-    void parseTerm() {
-        parseFactor();
-        while (tokens[pos].type == T_MUL || tokens[pos].type == T_DIV) {
-            pos++;
-            parseFactor();
+        void parseAssignment() {
+            expect(T_ID);
+            expect(T_ASSIGN);
+            parseExpression();
+            expect(T_SEMICOLON);
         }
-    }
 
-    void parseFactor() {
-        if (tokens[pos].type == T_NUM || tokens[pos].type == T_ID) {
-            pos++;
-        } else if (tokens[pos].type == T_LPAREN) {
+        void parseIfStatement() {
+            expect(T_IF);
             expect(T_LPAREN);
             parseExpression();
             expect(T_RPAREN);
-        } else {
-            cout << "Syntax error: unexpected token " << tokens[pos].value << endl;
-            exit(1);
+            parseStatement();  
+            if (tokens[pos].type == T_ELSE) {
+                expect(T_ELSE);
+                parseStatement();  
+            }
         }
-    }
 
-    void expect(TokenType type) {
-        if (tokens[pos].type == type) {
-            pos++;
-        } else {
-            cout << "Syntax error: expected " << type << " but found " << tokens[pos].value << endl;
-            exit(1);
+        void parseReturnStatement() {
+            expect(T_RETURN);
+            parseExpression();
+            expect(T_SEMICOLON);
         }
-    }
+
+        void parseExpression() {
+            parseTerm();
+            while (tokens[pos].type == T_PLUS || tokens[pos].type == T_MINUS) {
+                pos++;
+                parseTerm();
+            }
+            if (tokens[pos].type == T_GT) {
+                pos++;
+                parseExpression();
+            }
+        }
+
+        void parseTerm() {
+            parseFactor();
+            while (tokens[pos].type == T_MUL || tokens[pos].type == T_DIV) {
+                pos++;
+                parseFactor();
+            }
+        }
+
+        void parseFactor() {
+            if (tokens[pos].type == T_NUM || tokens[pos].type == T_ID) {
+                pos++;
+            } else if (tokens[pos].type == T_LPAREN) {
+                expect(T_LPAREN);
+                parseExpression();
+                expect(T_RPAREN);
+            } else {
+                cout << "Syntax error: unexpected token " << tokens[pos].value << endl;
+                exit(1);
+            }
+        }
+
+        void expect(TokenType type) {
+            if (tokens[pos].type == type) {
+                pos++;
+            } else {
+                cout << "Syntax error: expected " << type << " but found " << tokens[pos].value << endl;
+                exit(1);
+            }
+        }
 };
 
-int main() {
-    string input = R"(
-        int a;
-        a = 5;
-        int b;
-        b = a + 10;
-        if (b > 10) {
-            return b;
-        } else {
-            return 0;
-        }
-    )";
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        cout << "Usage: " << argv[0] << " <source-file>" << endl;
+        return 1;
+    }
 
+    // Read file from command line argument
+    ifstream file(argv[1]);
+    if (!file.is_open()) {
+        cout << "Error: Could not open file " << argv[1] << endl;
+        return 1;
+    }
+
+    string input((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+    file.close();
+
+    // Perform lexical analysis and parsing
     Lexer lexer(input);
     vector<Token> tokens = lexer.tokenize();
     
