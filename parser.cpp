@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <string>
 #include <cctype>
@@ -109,31 +110,6 @@ private:
     vector<Token> tokens;
     size_t pos;
 
-    // Converts token type to a human-readable string for error messages
-    string tokenTypeToString(TokenType type) {
-        switch (type) {
-            case T_INT: return "int";
-            case T_ID: return "identifier";
-            case T_NUM: return "number";
-            case T_IF: return "if";
-            case T_ELSE: return "else";
-            case T_RETURN: return "return";
-            case T_ASSIGN: return "'='";
-            case T_PLUS: return "'+'";
-            case T_MINUS: return "'-'";
-            case T_MUL: return "'*'";
-            case T_DIV: return "'/'";
-            case T_LPAREN: return "'('";
-            case T_RPAREN: return "')'";
-            case T_LBRACE: return "'{'";
-            case T_RBRACE: return "'}'";
-            case T_SEMICOLON: return "';'";
-            case T_GT: return "'>'";
-            case T_EOF: return "end of file";
-            default: return "unknown token";
-        }
-    }
-
     void parseStatement() {
         if (tokens[pos].type == T_INT) {
             parseDeclaration();
@@ -226,25 +202,26 @@ private:
         if (tokens[pos].type == type) {
             pos++;
         } else {
-            cout << "Syntax error at line " << tokens[pos].line << ": expected " << tokenTypeToString(type) 
-                 << " but found '" << tokens[pos].value << "'" << endl;
+            cout << "Syntax error at line " << tokens[pos].line << ": expected " << type << " but found " << tokens[pos].value << endl;
             exit(1);
         }
     }
 };
 
-int main() {
-    string input = R"(
-        int a;
-        a = 5;
-        int b;
-        b = a + 10;
-        if (b > 10) {
-            return b;
-        } else {
-            return 0;
-        }
-    )";
+int main(int argc, char *argv[]) {
+    if (argc < 2) {
+        cerr << "Usage: " << argv[0] << " <source-file>" << endl;
+        return 1;
+    }
+
+    string filename = argv[1];
+    ifstream file(filename);
+    if (!file) {
+        cerr << "Error: Could not open file " << filename << endl;
+        return 1;
+    }
+
+    string input((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
 
     Lexer lexer(input);
     vector<Token> tokens = lexer.tokenize();
